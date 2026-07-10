@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="core">
+      <UniqueIdentifier>{a1b2c3d4-0001-4a10-9c00-000000000001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="app">
+      <UniqueIdentifier>{a1b2c3d4-0002-4a10-9c00-000000000002}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.c" />
+    <ClCompile Include="core\console.c"><Filter>core</Filter></ClCompile>
+    <ClCompile Include="core\hexutil.c"><Filter>core</Filter></ClCompile>
+    <ClCompile Include="core\elevation.c"><Filter>core</Filter></ClCompile>
+    <ClCompile Include="core\scm.c"><Filter>core</Filter></ClCompile>
+    <ClCompile Include="core\service_host.c"><Filter>core</Filter></ClCompile>
+    <ClCompile Include="core\registry.c"><Filter>core</Filter></ClCompile>
+    <ClCompile Include="core\ipc_client.c"><Filter>core</Filter></ClCompile>
+    <ClCompile Include="core\ipc_server.c"><Filter>core</Filter></ClCompile>
+    <ClCompile Include="app\btkeys.c"><Filter>app</Filter></ClCompile>
+    <ClCompile Include="app\keyfile.c"><Filter>app</Filter></ClCompile>
+    <ClCompile Include="app\keystore.c"><Filter>app</Filter></ClCompile>
+    <ClCompile Include="app\cli.c"><Filter>app</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="core\util.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="core\console.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="core\hexutil.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="core\elevation.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="core\scm.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="core\service_host.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="core\ipc.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="core\ipc_client.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="core\ipc_server.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="core\registry.h"><Filter>core</Filter></ClInclude>
+    <ClInclude Include="app\btkeys.h"><Filter>app</Filter></ClInclude>
+    <ClInclude Include="app\keyfile.h"><Filter>app</Filter></ClInclude>
+    <ClInclude Include="app\keystore.h"><Filter>app</Filter></ClInclude>
+    <ClInclude Include="app\cli.h"><Filter>app</Filter></ClInclude>
+  </ItemGroup>
+</Project>
