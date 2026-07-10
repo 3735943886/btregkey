@@ -32,6 +32,9 @@ x86/
 *.sdf
 *.opensdf
 
+# Claude Code local config
+.claude/
+
 # OS
 Thumbs.db
 desktop.ini
