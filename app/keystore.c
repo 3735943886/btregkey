@@ -136,17 +136,65 @@ static void WalkStream(const BYTE* s, DWORD len, KeyFileValueFn visit, void* ctx
 
 // --- visitors ----------------------------------------------------------------
 
+// Column widths for the aligned `list` output. wsprintf offers no reliable
+// field width for %s, so we measure the widest cell per column in a first pass
+// (MeasureVisit) and pad by hand in the second (PrintVisit).
+typedef struct
+{
+	int wKey;
+	int wVal;
+	int wType;
+} ColWidths;
+
+static LPCTSTR KeyText(LPCTSTR key)   { return (key && key[0]) ? key : TEXT("(root)"); }
+static LPCTSTR NameText(LPCTSTR name) { return (name && name[0]) ? name : TEXT("@"); }
+
+// Emit `n` copies of `ch` (n <= 0 prints nothing) in 32-char chunks.
+static void Fill(TCHAR ch, int n)
+{
+	TCHAR buf[33];
+	while (n > 0)
+	{
+		int k = (n > 32) ? 32 : n;
+		int i;
+		for (i = 0; i < k; i++) buf[i] = ch;
+		buf[k] = 0;
+		ConsolePuts(buf);
+		n -= k;
+	}
+}
+
+// Print `s` left-justified in `width`, followed by a two-space column gap.
+static void PrintCol(LPCTSTR s, int width)
+{
+	ConsolePuts(s);
+	Fill(TEXT(' '), width - lstrlen(s) + 2);
+}
+
+static void MeasureVisit(void* ctx, LPCTSTR key, LPCTSTR name, DWORD type,
+                         const BYTE* data, DWORD dlen)
+{
+	ColWidths* c = (ColWidths*)ctx;
+	TCHAR typeText[16];
+	int n;
+	(void)data; (void)dlen;
+
+	n = lstrlen(KeyText(key));   if (n > c->wKey)  c->wKey = n;
+	n = lstrlen(NameText(name)); if (n > c->wVal)  c->wVal = n;
+	RegTypeToText(type, typeText);
+	n = lstrlen(typeText);       if (n > c->wType) c->wType = n;
+}
+
 static void PrintVisit(void* ctx, LPCTSTR key, LPCTSTR name, DWORD type,
                        const BYTE* data, DWORD dlen)
 {
+	ColWidths* c = (ColWidths*)ctx;
 	TCHAR typeText[16];
-	(void)ctx;
 
 	RegTypeToText(type, typeText);
-	ConsolePrintf(TEXT("%s\t%s\t%s\t"),
-	              (key && key[0]) ? key : TEXT("(root)"),
-	              (name && name[0]) ? name : TEXT("@"),
-	              typeText);
+	PrintCol(KeyText(key),   c->wKey);
+	PrintCol(NameText(name), c->wVal);
+	PrintCol(typeText,       c->wType);
 
 	if (dlen)
 	{
@@ -205,9 +253,27 @@ LONG KeystoreList(void)
 
 	if (st != ERROR_SUCCESS) return (LONG)st;
 
-	ConsolePuts(TEXT("keyPath\tvalue\ttype\tdata\n"));
-	ConsolePuts(TEXT("-------\t-----\t----\t----\n"));
-	WalkStream(stream, len, PrintVisit, NULL);
+	{
+		ColWidths cols;
+		// Start at the header-label widths so the titles line up too.
+		cols.wKey  = lstrlen(TEXT("keyPath"));
+		cols.wVal  = lstrlen(TEXT("value"));
+		cols.wType = lstrlen(TEXT("type"));
+		WalkStream(stream, len, MeasureVisit, &cols);
+
+		// Header row + underline, using the measured widths.
+		PrintCol(TEXT("keyPath"), cols.wKey);
+		PrintCol(TEXT("value"),   cols.wVal);
+		PrintCol(TEXT("type"),    cols.wType);
+		ConsolePuts(TEXT("data\n"));
+
+		Fill(TEXT('-'), cols.wKey);  Fill(TEXT(' '), 2);
+		Fill(TEXT('-'), cols.wVal);  Fill(TEXT(' '), 2);
+		Fill(TEXT('-'), cols.wType); Fill(TEXT(' '), 2);
+		Fill(TEXT('-'), 4);          ConsolePuts(TEXT("\n"));
+
+		WalkStream(stream, len, PrintVisit, &cols);
+	}
 
 	IpcFree(stream);
 	return ERROR_SUCCESS;
