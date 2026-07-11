@@ -23,9 +23,10 @@
 
 typedef enum
 {
-	IPC_OP_NONE  = 0, // idle / completed
-	IPC_OP_ENUM  = 1, // enumerate HKLM\<subkey> recursively into the payload
-	IPC_OP_WRITE = 2, // apply a packed list of registry values from the payload
+	IPC_OP_NONE   = 0, // idle / completed
+	IPC_OP_ENUM   = 1, // enumerate HKLM\<subkey> recursively into the payload
+	IPC_OP_WRITE  = 2, // apply a packed list of registry values from the payload
+	IPC_OP_DELETE = 3, // delete a packed list of registry values / subtrees
 } IpcOp;
 
 #pragma pack(push, 4)

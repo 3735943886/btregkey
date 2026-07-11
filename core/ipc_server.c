@@ -67,6 +67,51 @@ static void HandleWrite(IpcHeader* hdr, BYTE* payload)
 	hdr->status = result;
 }
 
+// payload: DWORD count, then `count` records of
+//   DWORD kind (0 = value, 1 = subtree),
+//   DWORD keyBytes, keyPath (pad4), DWORD valBytes, valName (pad4)
+// On return payloadLen carries the number of items actually removed; a target
+// that did not exist (ERROR_FILE_NOT_FOUND) is not counted and not an error.
+static void HandleDelete(IpcHeader* hdr, BYTE* payload)
+{
+	BYTE* p = payload;
+	DWORD count = *(DWORD*)p; p += sizeof(DWORD);
+	LONG result = ERROR_SUCCESS;
+	DWORD deleted = 0;
+	DWORD i;
+
+	for (i = 0; i < count; i++)
+	{
+		DWORD kind = *(DWORD*)p; p += sizeof(DWORD);
+
+		DWORD keyBytes = *(DWORD*)p; p += sizeof(DWORD);
+		LPCTSTR keyPath = (LPCTSTR)p; p += Align4(keyBytes);
+
+		DWORD valBytes = *(DWORD*)p; p += sizeof(DWORD);
+		LPCTSTR valName = (LPCTSTR)p; p += Align4(valBytes);
+
+		LONG r;
+		if (kind == 1)
+		{
+			r = RegistryDeleteTree(keyPath);
+		}
+		else
+		{
+			// A lone null (valBytes == sizeof(TCHAR)) means the default value.
+			LPCTSTR name = (valBytes > sizeof(TCHAR)) ? valName : NULL;
+			r = RegistryDeleteValue(keyPath, name);
+		}
+
+		if (r == ERROR_SUCCESS)
+			deleted++;
+		else if (r != ERROR_FILE_NOT_FOUND && result == ERROR_SUCCESS)
+			result = r;
+	}
+
+	hdr->payloadLen = deleted;
+	hdr->status = result;
+}
+
 void IpcServerWorker(HANDLE hStopEvent)
 {
 	HANDLE hMap = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, IPC_MAPPING_NAME);
@@ -79,9 +124,10 @@ void IpcServerWorker(HANDLE hStopEvent)
 
 			switch (hdr->op)
 			{
-			case IPC_OP_ENUM:  HandleEnum(hdr, payload);  break;
-			case IPC_OP_WRITE: HandleWrite(hdr, payload); break;
-			default:           hdr->status = ERROR_INVALID_FUNCTION; break;
+			case IPC_OP_ENUM:   HandleEnum(hdr, payload);   break;
+			case IPC_OP_WRITE:  HandleWrite(hdr, payload);  break;
+			case IPC_OP_DELETE: HandleDelete(hdr, payload); break;
+			default:            hdr->status = ERROR_INVALID_FUNCTION; break;
 			}
 
 			// Signal completion to the client.

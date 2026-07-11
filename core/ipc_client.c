@@ -219,6 +219,89 @@ DWORD IpcWriteCommit(IpcWriteBatch* b)
 	return st;
 }
 
+// --- batched delete ----------------------------------------------------------
+// Same mapping/session plumbing as the writer, just a different record layout
+// and op code. A delete record is:
+//   DWORD kind, DWORD keyBytes, keyPath (pad4), DWORD valBytes, valName (pad4)
+
+DWORD IpcDeleteBegin(IpcWriteBatch* b)
+{
+	return IpcWriteBegin(b); // identical map + counter setup
+}
+
+static void AddDeleteRecord(IpcWriteBatch* b, DWORD kind, LPCTSTR keyPath,
+                            LPCTSTR valueName)
+{
+	DWORD keyBytes;
+	DWORD valBytes;
+	DWORD need;
+	DWORD avail;
+	static const TCHAR nul = 0;
+
+	if (!b->ok) return;
+
+	keyBytes = (lstrlen(keyPath) + 1) * sizeof(TCHAR);
+	valBytes = valueName ? ((lstrlen(valueName) + 1) * sizeof(TCHAR)) : sizeof(TCHAR);
+
+	need = sizeof(DWORD)                       // kind
+	     + sizeof(DWORD) + Align4(keyBytes)
+	     + sizeof(DWORD) + Align4(valBytes);
+
+	avail = (DWORD)((b->payload + IPC_PAYLOAD_MAX) - b->cursor);
+	if (need > avail)
+	{
+		b->ok = FALSE;
+		return;
+	}
+
+	PutDword(b, kind);
+
+	PutDword(b, keyBytes);
+	PutBytes(b, keyPath, keyBytes);
+	PutPad4(b);
+
+	PutDword(b, valBytes);
+	if (valueName) PutBytes(b, valueName, valBytes);
+	else           PutBytes(b, &nul, sizeof(TCHAR));
+	PutPad4(b);
+
+	(*b->count)++;
+}
+
+void IpcDeleteAddValue(IpcWriteBatch* b, LPCTSTR fullKeyPath, LPCTSTR valueName)
+{
+	AddDeleteRecord(b, 0, fullKeyPath, valueName);
+}
+
+void IpcDeleteAddTree(IpcWriteBatch* b, LPCTSTR fullKeyPath)
+{
+	AddDeleteRecord(b, 1, fullKeyPath, NULL);
+}
+
+DWORD IpcDeleteCommit(IpcWriteBatch* b, DWORD* outDeleted)
+{
+	DWORD st;
+
+	if (outDeleted) *outDeleted = 0;
+
+	if (b->beginErr != ERROR_SUCCESS)
+		return b->beginErr;
+
+	if (!b->ok)
+	{
+		MapDestroy(b->hMap, b->hdr);
+		return ERROR_INSUFFICIENT_BUFFER;
+	}
+
+	b->hdr->payloadLen = (DWORD)(b->cursor - b->payload);
+	st = Invoke(b->hdr, IPC_OP_DELETE);
+	if (st == ERROR_SUCCESS && outDeleted)
+		*outDeleted = b->hdr->payloadLen; // service reports removed count here
+
+	MapDestroy(b->hMap, b->hdr);
+	return st;
+}
+
 void IpcFree(void* p)
 {
 	if (p) HeapFree(GetProcessHeap(), 0, p);

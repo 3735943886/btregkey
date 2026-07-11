@@ -14,4 +14,10 @@ LONG KeystoreImport(LPCTSTR file);       // write keys from a file
 // hexKey is the 16-byte key in hex). Kept for quick one-off use.
 LONG KeystoreSetClassic(LPCTSTR adapter, LPCTSTR device, LPCTSTR hexKey);
 
+// Delete keys. If device is NULL/empty, the whole adapter subtree is removed
+// (e.g. leftovers from a retired dongle). Otherwise the one device is removed,
+// whether it is stored as a classic value or a BLE subkey. Prints how many
+// items were removed.
+LONG KeystoreDelete(LPCTSTR adapter, LPCTSTR device);
+
 #endif // BTREGKEY_APP_KEYSTORE_H

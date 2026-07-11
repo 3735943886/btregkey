@@ -26,4 +26,12 @@ DWORD RegistryEnumStream(HKEY hKey, BYTE* buf, DWORD bufSize, BOOL recursive);
 LONG RegistryWriteValue(LPCTSTR subKey, LPCTSTR valueName, DWORD type,
                         const BYTE* data, DWORD dataBytes);
 
+// Delete a single value under HKLM\subKey. valueName may be NULL for the key's
+// default value. Returns ERROR_FILE_NOT_FOUND if it does not exist.
+LONG RegistryDeleteValue(LPCTSTR subKey, LPCTSTR valueName);
+
+// Recursively delete HKLM\subKey and everything under it (the key itself is
+// removed). Returns ERROR_FILE_NOT_FOUND if it does not exist.
+LONG RegistryDeleteTree(LPCTSTR subKey);
+
 #endif // BTREGKEY_CORE_REGISTRY_H

@@ -276,3 +276,52 @@ LONG KeystoreSetClassic(LPCTSTR adapter, LPCTSTR device, LPCTSTR hexKey)
 	IpcWriteAddValue(&batch, full, device, REG_BINARY, key, n);
 	return (LONG)IpcWriteCommit(&batch);
 }
+
+LONG KeystoreDelete(LPCTSTR adapter, LPCTSTR device)
+{
+	IpcWriteBatch batch;
+	TCHAR adapterPath[512];
+	DWORD deleted = 0;
+	DWORD st;
+
+	// BT_KEYS_SUBKEY\<adapter>
+	lstrcpy(adapterPath, BT_KEYS_SUBKEY);
+	lstrcat(adapterPath, TEXT("\\"));
+	lstrcat(adapterPath, adapter);
+
+	st = IpcDeleteBegin(&batch);
+	if (st != ERROR_SUCCESS) return (LONG)st;
+
+	if (device && device[0])
+	{
+		// A classic device lives as a *value* named <device> under the adapter
+		// key; a BLE device lives as a *subkey* <adapter>\<device>. We don't
+		// know which, so target both forms -- the missing one is a no-op.
+		TCHAR devicePath[512];
+
+		IpcDeleteAddValue(&batch, adapterPath, device);
+
+		lstrcpy(devicePath, adapterPath);
+		lstrcat(devicePath, TEXT("\\"));
+		lstrcat(devicePath, device);
+		IpcDeleteAddTree(&batch, devicePath);
+	}
+	else
+	{
+		// Whole adapter subtree (e.g. keys left behind by an old dongle).
+		IpcDeleteAddTree(&batch, adapterPath);
+	}
+
+	st = IpcDeleteCommit(&batch, &deleted);
+	if (st != ERROR_SUCCESS)
+		return (LONG)st;
+
+	if (deleted == 0)
+	{
+		ConsolePuts(TEXT("Nothing matched; no keys were deleted.\n"));
+		return ERROR_FILE_NOT_FOUND;
+	}
+
+	ConsolePrintf(TEXT("Deleted %u item(s).\n"), deleted);
+	return ERROR_SUCCESS;
+}

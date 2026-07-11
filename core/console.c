@@ -70,3 +70,22 @@ void ConsoleWaitKey(void)
 		if (rec.EventType == KEY_EVENT && rec.Event.KeyEvent.bKeyDown) break;
 	}
 }
+
+TCHAR ConsoleReadChar(void)
+{
+	INPUT_RECORD rec;
+	DWORD read = 0;
+
+	if (g_hStdIn == INVALID_HANDLE_VALUE || g_hStdIn == NULL) return 0;
+
+	// Return the first key-down that carries a printable character.
+	for (;;)
+	{
+		if (!ReadConsoleInput(g_hStdIn, &rec, 1, &read)) return 0;
+		if (rec.EventType == KEY_EVENT && rec.Event.KeyEvent.bKeyDown &&
+		    rec.Event.KeyEvent.uChar.UnicodeChar != 0)
+		{
+			return (TCHAR)rec.Event.KeyEvent.uChar.UnicodeChar;
+		}
+	}
+}

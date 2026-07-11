@@ -15,6 +15,9 @@ static void Usage(void)
 		TEXT("  btregkey import <file>       write keys back from a file\n")
 		TEXT("  btregkey set <adapter> <device> <key>\n")
 		TEXT("                               set one classic link key (all hex)\n")
+		TEXT("  btregkey delete <adapter>            remove all keys for one adapter\n")
+		TEXT("  btregkey delete <adapter> <device>   remove one paired device's key\n")
+		TEXT("                               (add -y to skip the confirmation)\n")
 		TEXT("\n")
 		TEXT("Move an exported file to another PC and import it there.\n"));
 }
@@ -29,6 +32,9 @@ int CliRun(int argc, LPTSTR* argv)
 	LPCTSTR cmd = (argc > 1) ? argv[1] : NULL;
 	DWORD st;
 	LONG rc = ERROR_SUCCESS;
+	BOOL isDelete = cmd && (EqI(cmd, TEXT("delete")) || EqI(cmd, TEXT("del")));
+	LPCTSTR delAdapter = NULL;
+	LPCTSTR delDevice = NULL;
 
 	// Help never needs the service.
 	if (cmd && (EqI(cmd, TEXT("help")) || EqI(cmd, TEXT("-h")) ||
@@ -50,6 +56,50 @@ int CliRun(int argc, LPTSTR* argv)
 		ConsolePuts(TEXT("'set' needs <adapter> <device> <key>.\n\n"));
 		Usage();
 		return 1;
+	}
+
+	// 'delete' is destructive: parse operands and confirm before we bother
+	// installing the service or touching the registry.
+	if (isDelete)
+	{
+		int k;
+		BOOL assumeYes = FALSE;
+
+		if (argc < 3)
+		{
+			ConsolePuts(TEXT("'delete' needs an <adapter> (and optional <device>).\n\n"));
+			Usage();
+			return 1;
+		}
+
+		delAdapter = argv[2];
+		for (k = 3; k < argc; k++)
+		{
+			if (EqI(argv[k], TEXT("-y")) || lstrcmp(argv[k], TEXT("/y")) == 0)
+				assumeYes = TRUE;
+			else if (!delDevice)
+				delDevice = argv[k];
+		}
+
+		if (delDevice)
+			ConsolePrintf(TEXT("About to delete device %s under adapter %s.\n"),
+			              delDevice, delAdapter);
+		else
+			ConsolePrintf(TEXT("About to delete ALL keys under adapter %s.\n"),
+			              delAdapter);
+
+		if (!assumeYes)
+		{
+			TCHAR c;
+			ConsolePuts(TEXT("This cannot be undone. Type Y to continue: "));
+			c = ConsoleReadChar();
+			ConsolePuts(TEXT("\n"));
+			if (c != TEXT('y') && c != TEXT('Y'))
+			{
+				ConsolePuts(TEXT("Cancelled.\n"));
+				return 0;
+			}
+		}
 	}
 
 	// Install the SYSTEM helper service for the duration of the command.
@@ -80,6 +130,10 @@ int CliRun(int argc, LPTSTR* argv)
 		rc = KeystoreSetClassic(argv[2], argv[3], argv[4]);
 		if (rc == ERROR_SUCCESS)
 			ConsolePuts(TEXT("Key set.\n"));
+	}
+	else if (isDelete)
+	{
+		rc = KeystoreDelete(delAdapter, delDevice);
 	}
 	else
 	{

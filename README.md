@@ -39,9 +39,19 @@ btregkey export <file>       save all keys to a file
 btregkey import <file>       write keys back from a file
 btregkey set <adapter> <device> <key>
                              set one classic link key (all values hex)
+btregkey delete <adapter>            remove all keys for one adapter
+btregkey delete <adapter> <device>   remove one paired device's key
+                             (add -y to skip the confirmation prompt)
 ```
 
 Move an exported file to another PC and `import` it there.
+
+`delete` is for pruning stale entries — e.g. keys left behind by a Bluetooth
+dongle you no longer use (each dongle appears as its own `<adapter>` block).
+It is destructive and asks for confirmation unless you pass `-y`. When a
+`<device>` is given it is removed whether it is stored as a classic value or a
+BLE subkey; with no `<device>` the whole adapter block is removed. Export first
+if you want a backup.
 
 The tool requires administrator rights. If launched from a normal console it
 automatically relaunches itself elevated.
@@ -79,7 +89,7 @@ installed.
 main.c                 role dispatch (service / elevated / relaunch)
 app/
   cli.c                argument parsing and command dispatch
-  keystore.c           list / export / import / set operations
+  keystore.c           list / export / import / set / delete operations
   keyfile.c            export-file reader & writer
   btkeys.c             keys subkey path + registry-type <-> text
 core/

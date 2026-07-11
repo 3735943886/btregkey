@@ -148,3 +148,13 @@ LONG RegistryWriteValue(LPCTSTR subKey, LPCTSTR valueName, DWORD type,
 {
 	return RegSetKeyValue(HKEY_LOCAL_MACHINE, subKey, valueName, type, data, dataBytes);
 }
+
+LONG RegistryDeleteValue(LPCTSTR subKey, LPCTSTR valueName)
+{
+	return RegDeleteKeyValue(HKEY_LOCAL_MACHINE, subKey, valueName);
+}
+
+LONG RegistryDeleteTree(LPCTSTR subKey)
+{
+	return RegDeleteTree(HKEY_LOCAL_MACHINE, subKey);
+}

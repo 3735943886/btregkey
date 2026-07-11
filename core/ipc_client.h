@@ -32,6 +32,15 @@ void  IpcWriteAddValue(IpcWriteBatch* b, LPCTSTR fullKeyPath, LPCTSTR valueName,
                        DWORD type, const BYTE* data, DWORD dataLen);
 DWORD IpcWriteCommit(IpcWriteBatch* b);
 
+// Batched deleter, mirroring the writer. Begin, add each target, then Commit.
+// AddValue removes a single value; AddTree removes a whole subkey and its
+// descendants. Commit reports how many targets actually existed and were
+// removed via *outDeleted (may be NULL); missing targets are not errors.
+DWORD IpcDeleteBegin(IpcWriteBatch* b);
+void  IpcDeleteAddValue(IpcWriteBatch* b, LPCTSTR fullKeyPath, LPCTSTR valueName);
+void  IpcDeleteAddTree(IpcWriteBatch* b, LPCTSTR fullKeyPath);
+DWORD IpcDeleteCommit(IpcWriteBatch* b, DWORD* outDeleted);
+
 void IpcFree(void* p);
 
 #endif // BTREGKEY_CORE_IPC_CLIENT_H

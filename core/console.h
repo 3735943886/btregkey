@@ -18,4 +18,8 @@ DWORD ConsolePrintf(LPCTSTR fmt, ...);
 // Drain the keyboard buffer, then block until the user presses a key.
 void ConsoleWaitKey(void);
 
+// Block until the user presses a character key and return that character
+// (0 if input is unavailable). Used for y/n confirmation prompts.
+TCHAR ConsoleReadChar(void);
+
 #endif // BTREGKEY_CORE_CONSOLE_H
