@@ -38,5 +38,9 @@
     <ClInclude Include="app\keyfile.h"><Filter>app</Filter></ClInclude>
     <ClInclude Include="app\keystore.h"><Filter>app</Filter></ClInclude>
     <ClInclude Include="app\cli.h"><Filter>app</Filter></ClInclude>
+    <ClInclude Include="version.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="btregkey.rc" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,32 @@
+#include <winver.h>
+#include "version.h"
+
+// PE version resource. All version data comes from version.h so there is a
+// single source of truth shared with the console output.
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    BTREGKEY_VER_MAJOR,BTREGKEY_VER_MINOR,BTREGKEY_VER_PATCH,0
+ PRODUCTVERSION BTREGKEY_VER_MAJOR,BTREGKEY_VER_MINOR,BTREGKEY_VER_PATCH,0
+ FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+ FILEFLAGS      0x0L
+ FILEOS         VOS_NT_WINDOWS32
+ FILETYPE       VFT_APP
+ FILESUBTYPE    VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"          // U.S. English, Unicode
+        BEGIN
+            VALUE "FileDescription",  "Bluetooth pairing key tool"
+            VALUE "FileVersion",      BTREGKEY_VERSION_STR
+            VALUE "InternalName",     "btregkey"
+            VALUE "OriginalFilename", "btregkey.exe"
+            VALUE "ProductName",      "btregkey"
+            VALUE "ProductVersion",   BTREGKEY_VERSION_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

@@ -42,6 +42,7 @@ btregkey set <adapter> <device> <key>
 btregkey delete <adapter>            remove all keys for one adapter
 btregkey delete <adapter> <device>   remove one paired device's key
                              (add -y to skip the confirmation prompt)
+btregkey version                     print the version and exit
 ```
 
 Move an exported file to another PC and `import` it there.
@@ -130,7 +131,17 @@ msbuild btregkey.vcxproj /p:Configuration=Release /p:Platform=x64
 Configurations `Debug`/`Release` for `x64` and `Win32` are provided. The project
 uses a custom entry point (`btregkey`) and links as a console application.
 
-The output is a single self-contained `btregkey.exe`.
+The output is a single self-contained `btregkey.exe` — it imports only core
+Windows DLLs (`kernel32`, `user32`, `advapi32`, `shell32`, `shlwapi`) and needs
+no Visual C++ runtime redistributable.
+
+### Versioning
+
+The version lives in one place, [`version.h`](version.h) (three numeric
+macros). Both the console output (`btregkey version`, and the banner) and the
+Windows PE version resource ([`btregkey.rc`](btregkey.rc), visible under the
+exe's Properties → Details) are derived from it, so bumping the version is a
+one-line change.
 
 ## Notes & caveats
 

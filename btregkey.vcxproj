@@ -142,6 +142,10 @@
     <ClInclude Include="app\keyfile.h" />
     <ClInclude Include="app\keystore.h" />
     <ClInclude Include="app\cli.h" />
+    <ClInclude Include="version.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="btregkey.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

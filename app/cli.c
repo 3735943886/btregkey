@@ -2,11 +2,12 @@
 #include "keystore.h"
 #include "../core/ipc_client.h"
 #include "../core/console.h"
+#include "../version.h"
 
 static void Usage(void)
 {
 	ConsolePuts(
-		TEXT("btregkey - Bluetooth pairing key tool\n")
+		TEXT("btregkey ") BTREGKEY_VERSION_WSTR TEXT(" - Bluetooth pairing key tool\n")
 		TEXT("\n")
 		TEXT("Usage:\n")
 		TEXT("  btregkey                     list all Bluetooth keys\n")
@@ -41,6 +42,14 @@ int CliRun(int argc, LPTSTR* argv)
 	            lstrcmp(cmd, TEXT("/?")) == 0))
 	{
 		Usage();
+		return 0;
+	}
+
+	// Neither does version.
+	if (cmd && (EqI(cmd, TEXT("version")) || EqI(cmd, TEXT("--version")) ||
+	            EqI(cmd, TEXT("-v"))))
+	{
+		ConsolePuts(TEXT("btregkey ") BTREGKEY_VERSION_WSTR TEXT("\n"));
 		return 0;
 	}
 
