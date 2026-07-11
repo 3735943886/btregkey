@@ -111,10 +111,12 @@ status back. See [`core/ipc.h`](core/ipc.h) for the protocol.
 ## Building
 
 Requires the **MSVC C/C++ compiler** and the Windows SDK — install Visual
-Studio 2026 (or the standalone Build Tools) with the "Desktop development with
-C++" workload. The project targets the **v145** platform toolset (MSVC 14.5x)
-that ships with VS 2026; to build with VS 2022 instead, change
-`<PlatformToolset>` in `btregkey.vcxproj` back to `v143`.
+Studio 2022/2026 (or the standalone Build Tools) with the "Desktop development
+with C++" workload. The project pins no specific compiler version: it uses
+`<PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>`, which resolves
+to whatever MSVC toolset the building install provides (v143 on VS 2022, v145
+on VS 2026). Likewise `WindowsTargetPlatformVersion` is `10.0`, i.e. the latest
+installed SDK. So it builds as-is on any recent MSVC.
 
 ```powershell
 # from a Developer prompt, or point at MSBuild directly:
