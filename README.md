@@ -119,13 +119,11 @@ to whatever MSVC toolset the building install provides (v143 on VS 2022, v145
 on VS 2026). Likewise `WindowsTargetPlatformVersion` is `10.0`, i.e. the latest
 installed SDK. So it builds as-is on any recent MSVC.
 
-```powershell
-# from a Developer prompt, or point at MSBuild directly:
-msbuild btregkey.vcxproj /p:Configuration=Release /p:Platform=x64
+From a **Developer PowerShell/Command Prompt for VS** (where `msbuild` is on the
+PATH):
 
-# e.g. with the VS 2026 Community MSBuild:
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" `
-    btregkey.vcxproj /p:Configuration=Release /p:Platform=x64
+```powershell
+msbuild btregkey.vcxproj /p:Configuration=Release /p:Platform=x64
 ```
 
 Configurations `Debug`/`Release` for `x64` and `Win32` are provided. The project
