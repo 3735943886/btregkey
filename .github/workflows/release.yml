@@ -1,0 +1,39 @@
+name: build-and-release
+
+# Push a version tag (e.g. `git tag v0.1.0 && git push origin v0.1.0`) to build
+# btregkey.exe on a Windows runner and publish it as a GitHub Release.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write        # needed to create the release
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build (Release x64)
+        run: msbuild btregkey.vcxproj /p:Configuration=Release /p:Platform=x64 /m
+
+      - name: Stage artifact
+        shell: pwsh
+        run: |
+          $out = "btregkey-${{ github.ref_name }}-x64.exe"
+          Copy-Item "x64\Release\btregkey.exe" $out
+          "ASSET=$out" | Out-File -FilePath $env:GITHUB_ENV -Append
+          (Get-Item $out).VersionInfo | Format-List FileVersion,ProductVersion
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ASSET }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
