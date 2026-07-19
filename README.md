@@ -36,7 +36,9 @@ Typical uses:
 btregkey                     list all Bluetooth keys (default)
 btregkey list                list all Bluetooth keys
 btregkey export <file>       save all keys to a file
+     [--normalize | --no-normalize]
 btregkey import <file>       write keys back from a file
+     [--onto-existing | --as-is]
 btregkey set <adapter> <device> <key>
                              set one classic link key (all values hex)
 btregkey delete <adapter>            remove all keys for one adapter
@@ -56,6 +58,25 @@ if you want a backup.
 
 The tool requires administrator rights. If launched from a normal console it
 automatically relaunches itself elevated.
+
+### BLE folder names vs. the real address
+
+A BLE bond is stored in a subkey named by the device address, but the *real*
+identity address is the folder's `Address` value — and some Windows versions
+name the folder off by the final byte from that identity. `list` flags any such
+folder in a `notes:` section. The identity address is the source of truth, so:
+
+- **`export --normalize`** rewrites BLE folder names to their real `Address`
+  (canonical form). `--no-normalize` keeps them as stored. With neither flag,
+  export asks if it finds a mismatch (default: no).
+- **`import`** matches each incoming device to one already paired on this PC by
+  identity **within the same adapter** (never across dongles). If the same
+  device already exists under a different folder name, `--onto-existing` writes
+  onto the existing folder, `--as-is` keeps the file's folder name (creating a
+  second entry), and with neither flag import asks per device (default: as-is).
+
+This is what makes an export from one OS import cleanly on another that names
+the folder differently — no hand-editing the address.
 
 ### Export file format
 

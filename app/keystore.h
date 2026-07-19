@@ -7,8 +7,17 @@
 // (IpcSessionBegin) and returns a Win32 error code.
 
 LONG KeystoreList(void);                 // print all keys to the console
-LONG KeystoreExport(LPCTSTR file);       // dump all keys to a file
-LONG KeystoreImport(LPCTSTR file);       // write keys from a file
+
+// Dump all keys to a file. A BLE device's folder name can differ from its real
+// identity address (the folder's `Address` value); `normalize` controls whether
+// the export rewrites folder names to that identity: -1 ask (if any mismatch),
+// 0 never, 1 always.
+LONG KeystoreExport(LPCTSTR file, int normalize);
+
+// Write keys from a file. If an incoming device already exists on this PC under
+// a different folder name (same identity `Address`), `onto` decides: -1 ask per
+// device, 0 keep the file's folder names, 1 write onto the existing folder.
+LONG KeystoreImport(LPCTSTR file, int onto);
 
 // Manually set one classic BR/EDR link key (adapter/device are 12-hex MACs,
 // hexKey is the 16-byte key in hex). Kept for quick one-off use.

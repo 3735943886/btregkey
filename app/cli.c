@@ -13,7 +13,9 @@ static void Usage(void)
 		TEXT("  btregkey                     list all Bluetooth keys\n")
 		TEXT("  btregkey list                list all Bluetooth keys\n")
 		TEXT("  btregkey export <file>       save all keys to a file\n")
+		TEXT("       [--normalize|--no-normalize]  fix BLE folder names to real address\n")
 		TEXT("  btregkey import <file>       write keys back from a file\n")
+		TEXT("       [--onto-existing|--as-is]     match devices already paired here\n")
 		TEXT("  btregkey set <adapter> <device> <key>\n")
 		TEXT("                               set one classic link key (all hex)\n")
 		TEXT("  btregkey delete <adapter>            remove all keys for one adapter\n")
@@ -126,13 +128,27 @@ int CliRun(int argc, LPTSTR* argv)
 	}
 	else if (EqI(cmd, TEXT("export")))
 	{
-		rc = KeystoreExport(argv[2]);
+		int normalize = -1; // ask
+		int k;
+		for (k = 3; k < argc; k++)
+		{
+			if (EqI(argv[k], TEXT("--normalize")))         normalize = 1;
+			else if (EqI(argv[k], TEXT("--no-normalize"))) normalize = 0;
+		}
+		rc = KeystoreExport(argv[2], normalize);
 		if (rc == ERROR_SUCCESS)
 			ConsolePrintf(TEXT("Exported to %s\n"), argv[2]);
 	}
 	else if (EqI(cmd, TEXT("import")))
 	{
-		rc = KeystoreImport(argv[2]);
+		int onto = -1; // ask
+		int k;
+		for (k = 3; k < argc; k++)
+		{
+			if (EqI(argv[k], TEXT("--onto-existing"))) onto = 1;
+			else if (EqI(argv[k], TEXT("--as-is")))    onto = 0;
+		}
+		rc = KeystoreImport(argv[2], onto);
 	}
 	else if (EqI(cmd, TEXT("set")))
 	{
