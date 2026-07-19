@@ -6,7 +6,7 @@
 // (btregkey.rc) -- follows automatically.
 #define BTREGKEY_VER_MAJOR 0
 #define BTREGKEY_VER_MINOR 1
-#define BTREGKEY_VER_PATCH 0
+#define BTREGKEY_VER_PATCH 1
 
 // "0.1.0" as a narrow string literal, built from the numbers above. Used by the
 // .rc version resource (and safe for the resource compiler).
